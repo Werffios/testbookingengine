@@ -2,6 +2,36 @@
 
 {% block content %}
 <h1>Habitaciones del hotel</h1>
+
+<!-- Formulario de filtro -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{% url 'rooms' %}" class="row g-3">
+            <div class="col-md-8">
+                <label for="filter_name" class="form-label">Filtrar por nombre de habitación:</label>
+                <input type="text" class="form-control" id="filter_name" name="filter_name" 
+                       value="{{ filter_name }}" placeholder="Ej: Room 1">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Filtrar</button>
+                {% if filter_name %}
+                <a href="{% url 'rooms' %}" class="btn btn-outline-secondary">Limpiar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resultados -->
+{% if filter_name %}
+<div class="alert alert-info">
+    Mostrando habitaciones que contienen: "<strong>{{ filter_name }}</strong>"
+    {% if rooms|length == 0 %}
+    <br>No se encontraron habitaciones con ese nombre.
+    {% endif %}
+</div>
+{% endif %}
+
 {% for room in rooms%}
 <div class="row card mt-3 mb-3 hover-card bg-tr-250">
     <div class="col p-3">
