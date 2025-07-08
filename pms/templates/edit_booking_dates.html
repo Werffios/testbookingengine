@@ -1,0 +1,45 @@
+{% extends "main.html"%}
+
+{% block content %}
+<h1>Editar fechas de reserva</h1>
+
+<div class="card card-body mb-3">
+    <h5>Información de la reserva</h5>
+    <p><strong>Código:</strong> {{booking.code}}</p>
+    <p><strong>Habitación:</strong> {{booking.room.name}}</p>
+    <p><strong>Cliente:</strong> {{booking.customer.name}}</p>
+    <p><strong>Huéspedes:</strong> {{booking.guests}}</p>
+</div>
+
+<form action="" method="post">
+    {% csrf_token %}
+    
+    {% if booking_dates_form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ booking_dates_form.non_field_errors }}
+        </div>
+    {% endif %}
+    
+    {% for field in booking_dates_form %}
+    <div class="row mb-3">
+        <div class="col-md-2">
+            {{field.label_tag}}
+        </div>
+        <div class="col">
+            {{field}}
+            {% if field.errors %}
+                <div class="text-danger">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div class="mt-3">
+        <a class="btn btn-outline-primary" href="{% url 'home' %}">Volver</a>
+        <button class="btn btn-primary" type="submit">Guardar fechas</button>
+    </div>
+</form>
+
+{% endblock content%}
