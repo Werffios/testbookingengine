@@ -174,6 +174,73 @@ class EditBookingView(View):
             return redirect("/")
 
 
+class EditBookingDatesView(View):
+    # renders the booking dates edition form
+    def get(self, request, pk):
+        booking = Booking.objects.get(id=pk)
+        booking_dates_form = BookingDatesForm(instance=booking)
+        context = {
+            'booking': booking,
+            'booking_dates_form': booking_dates_form
+        }
+        return render(request, "edit_booking_dates.html", context)
+
+    # updates the booking dates with availability validation
+    @method_decorator(ensure_csrf_cookie)
+    def post(self, request, pk):
+        booking = Booking.objects.get(id=pk)
+        booking_dates_form = BookingDatesForm(request.POST, instance=booking)
+
+        if booking_dates_form.is_valid():
+            # Get the new dates
+            new_checkin = booking_dates_form.cleaned_data['checkin']
+            new_checkout = booking_dates_form.cleaned_data['checkout']
+
+            # Validate that checkout is after checkin
+            if new_checkout <= new_checkin:
+                booking_dates_form.add_error('checkout', 'La fecha de salida debe ser posterior a la fecha de entrada.')
+                context = {
+                    'booking': booking,
+                    'booking_dates_form': booking_dates_form
+                }
+                return render(request, "edit_booking_dates.html", context)
+
+            # Check room availability for the new dates (excluding current booking)
+            conflicting_bookings = (Booking.objects
+                                  .filter(room=booking.room)
+                                  .filter(checkin__lt=new_checkout, checkout__gt=new_checkin)
+                                  .filter(state="NEW")
+                                  .exclude(id=booking.id))
+
+            if conflicting_bookings.exists():
+                booking_dates_form.add_error(None, 'No hay disponibilidad para las fechas seleccionadas.')
+                context = {
+                    'booking': booking,
+                    'booking_dates_form': booking_dates_form
+                }
+                return render(request, "edit_booking_dates.html", context)
+
+            # Calculate new total
+            checkin_ymd = Ymd.Ymd(str(new_checkin))
+            checkout_ymd = Ymd.Ymd(str(new_checkout))
+            total_days = checkout_ymd - checkin_ymd
+            new_total = total_days * booking.room.room_type.price
+
+            # Update booking with new dates and total
+            booking.checkin = new_checkin
+            booking.checkout = new_checkout
+            booking.total = new_total
+            booking.save()
+
+            return redirect("/")
+
+        context = {
+            'booking': booking,
+            'booking_dates_form': booking_dates_form
+        }
+        return render(request, "edit_booking_dates.html", context)
+
+
 class DashboardView(View):
     def get(self, request):
         from datetime import date, time, datetime
