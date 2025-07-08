@@ -1,0 +1,69 @@
+[33m83686b3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnasuarezro[m[33m, [m[1;31morigin/nasuarezro[m[33m)[m Add data via jetbrains
+[33m62e178f[m Add tests for occupancy percentage calculations and room filtering
+[33mad98102[m Add occupancy percentage display to dashboard
+[33m913e122[m Add occupancy percentage calculation to dashboard context
+[33mbfee67a[m Update comment to clarify invoiced bookings calculation
+[33m313997e[m Add filtering functionality to rooms view by room name
+[33m98ae5b2[m Add unit tests for room filtering functionality
+[33m642c34f[m Exclude virtual environment folder from module content and specify Python SDK version
+[33m872acda[m Update TIME_ZONE setting to UTC-5
+[33mb6449d9[m Add filter form to rooms page for room name search
+[33m87b74e5[m Add identifier.sqlite database file
+[33m673da3b[m Update README.md with deployment instructions and Pycharm setup
+[33m77d1da5[m Update DB and Add images
+[33m66e0594[m Add requirements.txt with project dependencies
+[33m34e21f3[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Update README.md
+[33m86aa3dd[m Merge pull request #1 from oscarchapp/reformat
+[33m9be9959[m[33m ([m[1;31morigin/reformat[m[33m)[m Reformat
+[33m5bb2384[m Merge branch 'main' of https://github.com/oscarchapp/testbookingengine
+[33maa2113b[m Comment dates validation
+[33m66ddc97[m Delete pms/form_dates/__pycache__ directory
+[33m6ffe81a[m Delete pms/reservation_code/__pycache__ directory
+[33md23251e[m Delete pms/migrations/__pycache__ directory
+[33mbea3bb9[m Update README
+[33mfda0234[m Update readme
+[33mb34c459[m Ignore pychache files
+[33m3441d7b[m Merge branch 'main' of https://github.com/oscarchapp/testbookingengine
+[33m87bf39e[m Run project with docker
+[33mc3e9227[m Remove __pychace__ directory
+[33m3fe9197[m Add initial repo
+[33m7d073b7[m README.md
+[33m9d9b3dd[m EDIT: readme
+[33m30e025d[m EDIT: readme
+[33me04b5fe[m EDIT: Readme
+[33m61c27ae[m EDIT: class name RoomView
+[33mf254475[m EDIT: readme
+[33m5e4dbc9[m CHANGE: filenames
+[33m8de5eda[m FIX: typo misspeling
+[33m262091c[m ADD: link to room details
+[33m573e7a0[m FIX: total days not displayed
+[33mdc17f03[m EDIT: readme
+[33m46ee64f[m ADD: readme
+[33m002ab82[m DEL: room detail on search
+[33m598d0ac[m FIX: no total invoiced if zero
+[33m68b8b11[m ADD: rooms details
+[33m12f71fc[m FIX: script moved to search
+[33m1344859[m EDIT: migration
+[33mb685826[m FIX: names corrections
+[33mb029f5f[m FIX: style navbar
+[33m935357f[m ADD: dashboard
+[33meb5708f[m ADD: delete book function
+[33m5cd5ef4[m VAR: 20-2
+[33m5c97af0[m EDIT: views converted to classes
+[33me5f4e02[m ADD: new dates class
+[33mea9099e[m FIX: overwrite of context
+[33m361e4b3[m ADD: various 18-2
+[33m869e7bb[m IMPROVE: home date pickers
+[33m75799d7[m ADD: boostrap
+[33mded1a59[m ADD: csrf to book form
+[33m7e04b05[m FIX: whitenoise middleware
+[33m12853e0[m FIX: whitenoise middleware
+[33m46026bf[m ADD: whitenoise static files support
+[33m06d3d7f[m FIX: allowd hosts list
+[33m184dd1a[m ADD: allowed hosts
+[33mc0bbf3b[m ADD: heroku files
+[33mc6ae639[m ADD: heroku files
+[33m10c53a4[m ADD: heroku files
+[33mdaf645e[m first commit
+[33m5267fc6[m first commit
+[33ma4de02c[m first commit

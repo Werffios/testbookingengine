@@ -202,20 +202,36 @@ class DashboardView(View):
                      .values("id")
                      ).count()
 
-        # get outcoming guests
+        # get total invoiced today
         invoiced = (Booking.objects
                     .filter(created__range=today_range)
                     .exclude(state="DEL")
                     .aggregate(Sum('total'))
                     )
 
+        # calculate occupancy percentage
+        # Count confirmed bookings (state = 'NEW' is considered confirmed based on model choices)
+        confirmed_bookings_count = (Booking.objects
+                                   .filter(state="NEW")
+                                   .filter(checkin__lte=today, checkout__gt=today)
+                                   .count())
+
+        # Count total rooms
+        total_rooms_count = Room.objects.count()
+
+        # Calculate occupancy percentage
+        if total_rooms_count > 0:
+            occupancy_percentage = (confirmed_bookings_count / total_rooms_count) * 100
+        else:
+            occupancy_percentage = 0
+
         # preparing context data
         dashboard = {
             'new_bookings': new_bookings,
             'incoming_guests': incoming,
             'outcoming_guests': outcoming,
-            'invoiced': invoiced
-
+            'invoiced': invoiced,
+            'occupancy_percentage': round(occupancy_percentage, 1)
         }
 
         context = {
