@@ -321,3 +321,196 @@ class B_OccupancyTestCase(TestCase):
         expected_percentage = round((1 / 3) * 100, 1)
         self.assertEqual(percentage, expected_percentage)
         print("Test de ocupación con reserva actual (checkin ayer, checkout mañana): ", percentage)
+
+
+class C_EditBookingDatesTestCase(TestCase):
+    def setUp(self):
+        """Configurar datos de prueba para edición de fechas de reserva"""
+        self.client = Client()
+
+        # Crear tipo de habitación
+        self.room_type = Room_type.objects.create(
+            name="Doble",
+            price=50.0,
+            max_guests=2
+        )
+
+        # Crear habitaciones de prueba
+        self.room1 = Room.objects.create(
+            name="Room 1.1",
+            room_type=self.room_type,
+            description="Habitación estándar"
+        )
+
+        self.room2 = Room.objects.create(
+            name="Room 1.2",
+            room_type=self.room_type,
+            description="Habitación estándar"
+        )
+
+        # Crear cliente de prueba
+        self.customer = Customer.objects.create(
+            name="Nicolas Suarez",
+            email="nasuarezro@unal.edu.co",
+            phone="3228192983"
+        )
+
+        # Crear reserva base para las pruebas
+        self.booking = Booking.objects.create(
+            state='NEW',
+            checkin=date.today() + timedelta(days=1),
+            checkout=date.today() + timedelta(days=3),
+            room=self.room1,
+            guests=2,
+            customer=self.customer,
+            total=100.0,
+            code='TEST001'
+        )
+
+    def test_edit_dates_successful(self):
+        """Test de edición exitosa de fechas sin conflictos"""
+        # Nuevas fechas sin conflictos
+        new_checkin = date.today() + timedelta(days=5)
+        new_checkout = date.today() + timedelta(days=7)
+
+        # Datos del formulario
+        form_data = {
+            'checkin': new_checkin.strftime('%Y-%m-%d'),
+            'checkout': new_checkout.strftime('%Y-%m-%d')
+        }
+
+        # Realizar la petición POST
+        response = self.client.post(f'/booking/{self.booking.id}/edit-dates', form_data)
+
+        # Verificar redirección exitosa
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+
+        # Verificar que la reserva se actualizó
+        self.booking.refresh_from_db()
+        self.assertEqual(self.booking.checkin, new_checkin)
+        self.assertEqual(self.booking.checkout, new_checkout)
+
+        # Verificar que el total se recalculó (2 días * 50.0 = 100.0)
+        expected_total = 2 * self.room_type.price
+        self.assertEqual(self.booking.total, expected_total)
+
+        print(f"Test de edición exitosa: fechas actualizadas correctamente, nuevo total: {self.booking.total}")
+
+    def test_edit_dates_with_conflict(self):
+        """Test de edición con conflicto de disponibilidad"""
+        # Crear otra reserva que cause conflicto
+        conflict_checkin = date.today() + timedelta(days=5)
+        conflict_checkout = date.today() + timedelta(days=7)
+
+        conflicting_booking = Booking.objects.create(
+            state='NEW',
+            checkin=conflict_checkin,
+            checkout=conflict_checkout,
+            room=self.room1,  # Misma habitación
+            guests=2,
+            customer=self.customer,
+            total=100.0,
+            code='CONFLICT'
+        )
+
+        # Intentar editar fechas que se solapan con la reserva conflictiva
+        form_data = {
+            'checkin': (conflict_checkin + timedelta(days=1)).strftime('%Y-%m-%d'),
+            'checkout': (conflict_checkout + timedelta(days=1)).strftime('%Y-%m-%d')
+        }
+
+        # Realizar la petición POST
+        response = self.client.post(f'/booking/{self.booking.id}/edit-dates', form_data)
+
+        # Verificar que NO redirige (hay error)
+        self.assertEqual(response.status_code, 200)
+
+        # Verificar que contiene el mensaje de error
+        self.assertContains(response, 'No hay disponibilidad para las fechas seleccionadas')
+
+        # Verificar que la reserva original NO se modificó
+        self.booking.refresh_from_db()
+        self.assertEqual(self.booking.checkin, date.today() + timedelta(days=1))
+        self.assertEqual(self.booking.checkout, date.today() + timedelta(days=3))
+
+        print("Test de conflicto: error mostrado correctamente, reserva no modificada")
+
+    def test_edit_dates_invalid_date_order(self):
+        """Test con fecha de salida anterior o igual a fecha de entrada"""
+        # Fechas inválidas (salida antes que entrada)
+        invalid_checkin = date.today() + timedelta(days=5)
+        invalid_checkout = date.today() + timedelta(days=4)  # Anterior a checkin
+
+        form_data = {
+            'checkin': invalid_checkin.strftime('%Y-%m-%d'),
+            'checkout': invalid_checkout.strftime('%Y-%m-%d')
+        }
+
+        # Realizar la petición POST
+        response = self.client.post(f'/booking/{self.booking.id}/edit-dates', form_data)
+
+        # Verificar que NO redirige (hay error)
+        self.assertEqual(response.status_code, 200)
+
+        # Verificar que contiene el mensaje de error
+        self.assertContains(response, 'La fecha de salida debe ser posterior a la fecha de entrada')
+
+        # Verificar que la reserva original NO se modificó
+        self.booking.refresh_from_db()
+        self.assertEqual(self.booking.checkin, date.today() + timedelta(days=1))
+        self.assertEqual(self.booking.checkout, date.today() + timedelta(days=3))
+
+        print("Test de fechas inválidas: error mostrado correctamente, reserva no modificada")
+
+    def test_edit_dates_get_request(self):
+        """Test del método GET para mostrar el formulario de edición"""
+        response = self.client.get(f'/booking/{self.booking.id}/edit-dates')
+
+        # Verificar que la página se carga correctamente
+        self.assertEqual(response.status_code, 200)
+
+        # Verificar que contiene la información de la reserva
+        self.assertContains(response, self.booking.code)
+        self.assertContains(response, self.booking.room.name)
+        self.assertContains(response, self.booking.customer.name)
+
+        # Verificar que contiene los campos del formulario
+        self.assertContains(response, 'name="checkin"')
+        self.assertContains(response, 'name="checkout"')
+
+        print("Test GET: formulario de edición mostrado correctamente")
+
+    def test_edit_dates_different_room_no_conflict(self):
+        """Test de edición con fechas que no causan conflicto en otra habitación"""
+        # Crear reserva en habitación diferente
+        other_booking = Booking.objects.create(
+            state='NEW',
+            checkin=date.today() + timedelta(days=5),
+            checkout=date.today() + timedelta(days=7),
+            room=self.room2,  # Habitación diferente
+            guests=2,
+            customer=self.customer,
+            total=100.0,
+            code='OTHER'
+        )
+
+        # Editar fechas que se solapan con la otra reserva pero en habitación diferente
+        form_data = {
+            'checkin': (date.today() + timedelta(days=6)).strftime('%Y-%m-%d'),
+            'checkout': (date.today() + timedelta(days=8)).strftime('%Y-%m-%d')
+        }
+
+        # Realizar la petición POST
+        response = self.client.post(f'/booking/{self.booking.id}/edit-dates', form_data)
+
+        # Verificar redirección exitosa (no hay conflicto)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+
+        # Verificar que la reserva se actualizó
+        self.booking.refresh_from_db()
+        self.assertEqual(self.booking.checkin, date.today() + timedelta(days=6))
+        self.assertEqual(self.booking.checkout, date.today() + timedelta(days=8))
+
+        print("Test sin conflicto en habitación diferente: edición exitosa")
